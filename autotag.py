@@ -27,6 +27,7 @@ def sanitize_name(name):
     return re.sub("[!@#$%^&*()~`]", "", name).lower().replace(" ", "_")
 
 def process_flacs():
+    """Process all flac files at once."""
     try:
         subprocess.check_output(
             "metaflac --set-tag-from-file=DESCRIPTION=info.txt *.flac",
@@ -38,6 +39,7 @@ def process_flacs():
         shell = True)
 
 def process_wavs():
+    """Process all wav files at once, and convert to flac."""
     print subprocess.check_output("flac -V8f --replay-gain *.wav",
         shell = True)
     try:
@@ -48,6 +50,13 @@ def process_wavs():
         print "Info file for DESCRIPTION tag not found."
 
 def process(rename, move, addart):
+    """Process all tracks in the current directory.
+
+    Keyword arguments:
+    rename - If true, rename the tracks.
+    move - If true, move the tracks to the music directory.
+    addart - If true, try to guess and add album art to files.
+    """
     tracks = glob.glob("./*.flac") #All compatible audio files
     tracks.extend(glob.glob("./*.mp3"))
     tracks.extend(glob.glob("./*.ogg"))
@@ -155,6 +164,7 @@ def process(rename, move, addart):
         print "----"
 
 def manual():
+    """Give the user help."""
     print "autotag <options> <directory>" #TODO: real help
     sys.exit(2)
 
