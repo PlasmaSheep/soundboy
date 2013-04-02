@@ -121,7 +121,10 @@ def process():
                 track]))
                 subprocess.call(["mv", track + ".mp3", track])
                 audio = File(track)
-                for tag, value in tags:
+                for tag, value in tags.iteritems():
+                    #audio = File(track)
+                    audio[tag] = value
+                    audio.save()
                     #Set file's tags, save it
             #print subprocess.check_output(["id3v2", "-C", track])
             #print subprocess.check_output(["id3v2", "--delete-v1", track])
