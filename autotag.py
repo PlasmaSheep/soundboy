@@ -31,8 +31,9 @@ args = {"rename":False, "move":False, "albumart":False,
 def sanitize_name(name):
     return re.sub("[!@#$%^&*()~`]", "", name).lower().replace(" ", "_")
 
-def convert_process_flacs(mask):
-    """Convert all files matching mask to flac and process at once."""
+def convert_process_flacs(mask="*.flac"):
+    """Convert all files matching mask to flac and process at once.
+    mask - the string that matches the files (default: *.flac)"""
     global args
     if args["normalize"]:
         print(subprocess.check_output("flac -V8f --replay-gain " + mask,
@@ -66,6 +67,7 @@ def process():
         pics.extend(glob.glob("./*.jpg"))
         pics.extend(glob.glob("./*.jpeg"))
         pics.extend(glob.glob("./*.gif"))
+        
 
     if False:
         mb.set_useragent("Autotagger", ".1", "plasmasheep@gmail.com")
@@ -84,7 +86,7 @@ def process():
             print("FLAC file detected")
             if flacs_normalized is False:
                 print("Processing all FLAC files...")
-                convert_process_flacs("*.flac")
+                convert_process_flacs()
                 flacs_normalized = True;
             else:
                 print("FLACs already processed")
@@ -110,22 +112,11 @@ def process():
             track = track[:-4] + ".flac"
         
         if suffix == ".mp3":
-            #First convert all tags into a dict
-            tags = {}
-            keys = audio.keys()
-            for key in keys:
-                tags[key] = audio[key][0]
-
+            print("MP3 file detected")
             if args["normalize"]: #TODO: this does not handle album norm
                 print(subprocess.check_output(["lame", "--replaygain-accurate",
                 track]))
                 subprocess.call(["mv", track + ".mp3", track])
-                audio = File(track)
-                for tag, value in tags.iteritems():
-                    #audio = File(track)
-                    audio[tag] = value
-                    audio.save()
-                    #Set file's tags, save it
             #print subprocess.check_output(["id3v2", "-C", track])
             #print subprocess.check_output(["id3v2", "--delete-v1", track])
 

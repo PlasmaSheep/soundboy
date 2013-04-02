@@ -14,7 +14,8 @@ def manual():
 
 def main(argv):
     if(argv[0] == "import"):
-        print("Importing")
+        print("Importing files in the current directory.")
+        autotag.main(argv[1:])
         
     else:
         manual()
