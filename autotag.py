@@ -168,7 +168,7 @@ def manual():
     print "autotag <options> <directory>" #TODO: real help
     sys.exit(2)
 
-def main(argv):
+def main(argv): #TODO: make these global arguments?
     rename = False
     move = False
     addart = False
