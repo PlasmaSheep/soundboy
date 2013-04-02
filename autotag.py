@@ -29,28 +29,16 @@ args = {"rename": False, "move": False, "albumart": False,
 def sanitize_name(name):
     return re.sub("[!@#$%^&*()~`]", "", name).lower().replace(" ", "_")
 
-def process_flacs():
-    """Process all flac files at once."""
-    try:
-        subprocess.check_output(
-            "metaflac --set-tag-from-file=DESCRIPTION=info.txt *.flac",
-            shell = True)
-    except subprocess.CalledProcessError:
-        print("Info file for DESCRIPTION tag not found.")
-        
-    print(subprocess.check_output("flac -V8f --replay-gain *.flac",
-        shell = True))
-
-def process_wavs():
-    """Process all wav files at once, and convert to flac."""
-    print(subprocess.check_output("flac -V8f --replay-gain *.wav",
+def convert_process_flacs(mask):
+    """Convert all files matching mask to flac and process at once."""
+    global args
+    print(subprocess.check_output("flac -V8f --replay-gain " + mask,
         shell = True))
     try:
-        subprocess.check_output(
-            "metaflac --set-tag-from-file=DESCRIPTION=info.txt *.flac",
-            shell = True)
+        subprocess.check_output("metaflac --set-tag-from-file=DESCRIPTION=" +
+            args["descriptionfile"] + " *.flac", shell = True)
     except subprocess.CalledProcessError:
-        print("Info file for DESCRIPTION tag not found.")
+        continue #no big deal
 
 def process():
     global args
@@ -93,7 +81,7 @@ def process():
             print("FLAC file detected")
             if flacs_normalized is False:
                 print("Processing all FLAC files...")
-                process_flacs()
+                convert_process_flacs("*.flac")
                 flacs_normalized = True;
             else:
                 print("FLACs already processed")
@@ -111,11 +99,11 @@ def process():
             print("WAV file detected")
             if wavs_normalized is False:
                 print("Processing all WAV files...")
-                process_wavs()
+                convert_process_flacs("*.wav")
                 wavs_normalized = True
             else:
                 print("WAVs already processed")
-            #WAV files will become flac files
+            #WAV files will become flac files, update track accordingly
             track = track[:-4] + ".flac"
         
         '''if(re.search("[a-z0-9\.\-](mp3)", track)):
