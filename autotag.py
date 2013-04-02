@@ -23,8 +23,8 @@ logs = glob.glob("./*.log")
 
 albums = []; #List of albums for processing cue, log files'''
 
-args = {"rename": False, "move": False, "albumart": False,
-    "descriptionfile":"info.txt"}
+args = {"rename":False, "move":False, "albumart":False,
+    "descriptionfile":"info.txt", "normalize":False }
 
 def sanitize_name(name):
     return re.sub("[!@#$%^&*()~`]", "", name).lower().replace(" ", "_")
@@ -32,8 +32,9 @@ def sanitize_name(name):
 def convert_process_flacs(mask):
     """Convert all files matching mask to flac and process at once."""
     global args
-    print(subprocess.check_output("flac -V8f --replay-gain " + mask,
-        shell = True))
+    if args["normalize"]:
+        print(subprocess.check_output("flac -V8f --replay-gain " + mask,
+            shell = True))
     try:
         subprocess.check_output("metaflac --set-tag-from-file=DESCRIPTION=" +
             args["descriptionfile"] + " *.flac", shell = True)
@@ -77,7 +78,7 @@ def process():
         filetype = mimetypes.guess_type(track)[0]
         suffix = mimetypes.guess_extension(filetype)
         
-        if filetype.find("flac") != -1:
+        if suffix == ".flac":
             print("FLAC file detected")
             if flacs_normalized is False:
                 print("Processing all FLAC files...")
@@ -86,7 +87,7 @@ def process():
             else:
                 print("FLACs already processed")
             
-        if filetype.find("ogg") != -1:
+        if suffix == ".ogg":
             print("OGG file detected")
             if oggs_normalized is False:
                 print("Processing all OGG files...")
@@ -95,7 +96,7 @@ def process():
             else:
                 print("OGGs already processed")
 
-        if filetype.find("wav") != -1:
+        if suffix == ".wav":
             print("WAV file detected")
             if wavs_normalized is False:
                 print("Processing all WAV files...")
@@ -163,6 +164,8 @@ def main(argv): #Maybe make this take a list of files?
         help="Move the files to the music directory.")
     parser.add_argument("-a", "--albumart", action="store_true"
         help="Set album art as metadata.")
+    parser.add_argument("-n", "--normalize", action="store_true"
+        help="Normalize tracks with ReplayGain.")
     parser.add_argument("-d", "--descriptionfile", action="store_true",
         default="info.txt", help="Which file to use for the DESCRIPTION tag.")
     args = vars(parser.parse_args(argv))
