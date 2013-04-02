@@ -7,12 +7,12 @@
 #   remove .m3u file, album dir if necessary
 #   custom music directory
 
-import acoustid
+#import acoustid
 import getopt
 import glob
 import mimetypes
-import musicbrainzngs as mb
-from mutagen import File
+#import musicbrainzngs as mb
+#from mutagen import File
 import re
 import subprocess
 import sys
@@ -22,6 +22,8 @@ cues = glob.glob("./*.cue") #CUE and log files should also be moved
 logs = glob.glob("./*.log")
 
 albums = []; #List of albums for processing cue, log files'''
+
+args = {"rename": False, "move": False, "addart": False}
 
 def sanitize_name(name):
     return re.sub("[!@#$%^&*()~`]", "", name).lower().replace(" ", "_")
@@ -33,23 +35,24 @@ def process_flacs():
             "metaflac --set-tag-from-file=DESCRIPTION=info.txt *.flac",
             shell = True)
     except subprocess.CalledProcessError:
-        print "Info file for DESCRIPTION tag not found."
+        print("Info file for DESCRIPTION tag not found.")
         
-    print subprocess.check_output("flac -V8f --replay-gain *.flac",
-        shell = True)
+    print(subprocess.check_output("flac -V8f --replay-gain *.flac",
+        shell = True))
 
 def process_wavs():
     """Process all wav files at once, and convert to flac."""
-    print subprocess.check_output("flac -V8f --replay-gain *.wav",
-        shell = True)
+    print(subprocess.check_output("flac -V8f --replay-gain *.wav",
+        shell = True))
     try:
         subprocess.check_output(
             "metaflac --set-tag-from-file=DESCRIPTION=info.txt *.flac",
             shell = True)
     except subprocess.CalledProcessError:
-        print "Info file for DESCRIPTION tag not found."
+        print("Info file for DESCRIPTION tag not found.")
 
-def process(rename, move, addart):
+def process():
+    global args
     """Process all tracks in the current directory.
 
     Keyword arguments:
@@ -66,53 +69,51 @@ def process(rename, move, addart):
     wavs_normalized = False;
     oggs_normalized = False;
 
-    if addart:
+    if args["addart"]:
         pics = glob.glob("./*.png") #Image files
         pics.extend(glob.glob("./*.jpg"))
         pics.extend(glob.glob("./*.jpeg"))
         pics.extend(glob.glob("./*.gif"))
 
-        
-
     if False:
         mb.set_useragent("Autotagger", ".1", "plasmasheep@gmail.com")
     
     if(len(tracks) == 0):
-        print "No compatible audio files found. Please use flac, mp3, or ogg."
+        print("No compatible audio files found. Please use flac, mp3, or ogg.")
         sys.exit()
     
     for track in tracks:
-        print "Processing: " + track
+        print("Processing: " + track)
         audio = File(track, easy=True)
         filetype = mimetypes.guess_type(track)[0]
         suffix = mimetypes.guess_extension(filetype)
         
         if filetype.find("flac") != -1:
-            print "FLAC file detected"
+            print("FLAC file detected")
             if flacs_normalized is False:
-                print "Processing all FLAC files..."
+                print("Processing all FLAC files...")
                 process_flacs()
                 flacs_normalized = True;
             else:
-                print "FLACs already processed"
+                print("FLACs already processed")
             
         if filetype.find("ogg") != -1:
-            print "OGG file detected"
+            print("OGG file detected")
             if oggs_normalized is False:
-                print "Processing all OGG files..."
-                print subprocess.check_output("vorbisgain *.ogg", shell = True)
+                print("Processing all OGG files...")
+                print(subprocess.check_output("vorbisgain *.ogg", shell = True))
                 oggs_normalized = True
             else:
-                print "OGGs already processed"
+                print("OGGs already processed")
 
         if filetype.find("wav") != -1:
-            print "WAV file detected";
+            print("WAV file detected")
             if wavs_normalized is False:
-                print "Processing all WAV files...";
+                print("Processing all WAV files...")
                 process_wavs()
                 wavs_normalized = True
             else:
-                print "WAVs already processed"
+                print("WAVs already processed")
             #WAV files will become flac files
             track = track[:-4] + ".flac"
         
@@ -137,41 +138,39 @@ def process(rename, move, addart):
             result = acoustid.lookup("ZKTsCHXl", fingerprint[1], fingerprint[0])
             look = mb.get_release_by_id(result["results"][0]["recordings"][0]["id"])'''
 
-        if rename:
+        if args["rename"]:
             try:
                 newname = '{:0>2}'.format(audio["tracknumber"][0]) + "-" + \
                     sanitize_name(audio["title"][0])
-                print subprocess.check_output(['mv', "-v", track,
-                    newname + suffix])
+                print(subprocess.check_output(['mv', "-v", track,
+                    newname + suffix]))
                 track = newname + suffix
             except TypeError:
-                print "No metadata readable, cannot rename with track info."
-                print subprocess.check_output(["mv", "-v", track,
-                    sanitize_name(track)])
+                print("No metadata readable, cannot rename with track info.")
+                print(subprocess.check_output(["mv", "-v", track,
+                    sanitize_name(track)]))
                 track = sanitize_name(track)
             
-        if move:
+        if args["move"]:
             try:
                 newdir = "/home/user/music/" + \
                     sanitize_name(audio["artist"][0]) + "/" + \
                     sanitize_name(audio["album"][0]) + "/"
                 subprocess.call(["mkdir", "-p", newdir])
-                print subprocess.check_output(['mv', "-v", track,
-                    newdir + track])
+                print(subprocess.check_output(['mv', "-v", track,
+                    newdir + track]))
             except TypeError:
-                print "No metadata readable, cannot move."
+                print("No metadata readable, cannot move.")
 
-        print "----"
+        print("----")
 
 def manual():
     """Give the user help."""
-    print "autotag <options> <directory>" #TODO: real help
+    print("autotag <options> <directory>") #TODO: real help)
     sys.exit(2)
 
-def main(argv): #TODO: make these global arguments?
-    rename = False
-    move = False
-    addart = False
+def main(argv):
+    global args
     try:
         opts, args = getopt.getopt(argv, "hnma", ["help", "rename", "move",
             "albumart"])
@@ -181,12 +180,12 @@ def main(argv): #TODO: make these global arguments?
         if opt in ("-h", "--help"):
             manual()
         elif opt in ("-n", "--rename"):
-            rename = True
+            args["rename"] = True
         elif opt in ("-m", "--move"):
-            move = True
+            args["move"] = True
         elif opt in ("-a", "--albumart"):
-            addart = True
-    process(rename, move, addart)
+            args["addart"] = True
+    process()
 
 
 if(__name__ == "__main__"):
