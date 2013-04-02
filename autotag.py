@@ -23,7 +23,7 @@ logs = glob.glob("./*.log")
 
 albums = []; #List of albums for processing cue, log files'''
 
-args = {"rename": False, "move": False, "addart": False}
+args = {"rename": False, "move": False, "albumart": False}
 
 def sanitize_name(name):
     return re.sub("[!@#$%^&*()~`]", "", name).lower().replace(" ", "_")
@@ -69,7 +69,7 @@ def process():
     wavs_normalized = False;
     oggs_normalized = False;
 
-    if args["addart"]:
+    if args["albumart"]:
         pics = glob.glob("./*.png") #Image files
         pics.extend(glob.glob("./*.jpg"))
         pics.extend(glob.glob("./*.jpeg"))
@@ -171,26 +171,12 @@ def manual():
 
 def main(argv): #Maybe make this take a list of files?
     global args
-    parser = ArgumentParser(
+    parser = argparse.ArgumentParser(
         description = "Import files in the current directory.")
     parser.add_argument("-r", "--rename", action="store_true")
     parser.add_argument("-m", "--move", action="store_true")
     parser.add_argument("-a", "--albumart", action="store_true")
-    
-    """try:
-        opts, args = getopt.getopt(argv, "hnma", ["help", "rename", "move",
-            "albumart"])
-    except getopt.GetoptError:
-        manual()
-    for opt, arg in opts:
-        if opt in ("-h", "--help"):
-            manual()
-        elif opt in ("-n", "--rename"):
-            args["rename"] = True
-        elif opt in ("-m", "--move"):
-            args["move"] = True
-        elif opt in ("-a", "--albumart"):
-            args["addart"] = True"""
+    args = vars(parser.parse_args(argv))
     
     process()
 
