@@ -17,6 +17,8 @@ import re
 import subprocess
 import sys
 
+import pprint
+
 ''''
 cues = glob.glob("./*.cue") #CUE and log files should also be moved
 logs = glob.glob("./*.log")
@@ -39,7 +41,7 @@ def convert_process_flacs(mask):
         subprocess.check_output("metaflac --set-tag-from-file=DESCRIPTION=" +
             args["descriptionfile"] + " *.flac", shell = True)
     except subprocess.CalledProcessError:
-        continue #no big deal
+        pass #no big deal
 
 def process():
     global args
@@ -107,22 +109,23 @@ def process():
             #WAV files will become flac files, update track accordingly
             track = track[:-4] + ".flac"
         
-        '''if(re.search("[a-z0-9\.\-](mp3)", track)):
-            print subprocess.check_output(["lame", "--replaygain-accurate", track])
-            subprocess.call(["mv", track + ".mp3", track])
-            print subprocess.check_output(["id3v2", "-C", track])
-            print subprocess.check_output(["id3v2", "--delete-v1", track])
-            #trackinfo = subprocess.check_output(["id3v2", "-l", track])
-            #trackinfo = trackinfo.splitlines()
-            #for line in trackinfo:
-            #    
-            #    if(line.find("TIT2") == 0):
-            #        print "found title";
-            #        title = line[43:];
-            #    elif(line.find("TRCK") == 0):
-            #        num = line[38:];
-            suffix = ".mp3";'''
-        
+        if suffix == ".mp3":
+            #First convert all tags into a dict
+            tags = {}
+            keys = audio.keys()
+            for key in keys:
+                tags[key] = audio[key][0]
+
+            if args["normalize"]: #TODO: this does not handle album norm
+                print(subprocess.check_output(["lame", "--replaygain-accurate",
+                track]))
+                subprocess.call(["mv", track + ".mp3", track])
+                audio = File(track)
+                for tag, value in tags:
+                    #Set file's tags, save it
+            #print subprocess.check_output(["id3v2", "-C", track])
+            #print subprocess.check_output(["id3v2", "--delete-v1", track])
+
         '''if grabmeta:
             fingerprint = acoustid.fingerprint_file(track)
             result = acoustid.lookup("ZKTsCHXl", fingerprint[1], fingerprint[0])
@@ -160,11 +163,11 @@ def main(argv): #Maybe make this take a list of files?
         description = "Import files in the current directory.")
     parser.add_argument("-r", "--rename", action="store_true",
         help="Rename the files.")
-    parser.add_argument("-m", "--move", action="store_true"
+    parser.add_argument("-m", "--move", action="store_true",
         help="Move the files to the music directory.")
-    parser.add_argument("-a", "--albumart", action="store_true"
+    parser.add_argument("-a", "--albumart", action="store_true",
         help="Set album art as metadata.")
-    parser.add_argument("-n", "--normalize", action="store_true"
+    parser.add_argument("-n", "--normalize", action="store_true",
         help="Normalize tracks with ReplayGain.")
     parser.add_argument("-d", "--descriptionfile", action="store_true",
         default="info.txt", help="Which file to use for the DESCRIPTION tag.")
