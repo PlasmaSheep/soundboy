@@ -7,12 +7,12 @@
 #   remove .m3u file, album dir if necessary
 #   custom music directory
 
-#import acoustid
-import getopt
+import acoustid
+import argparse
 import glob
 import mimetypes
-#import musicbrainzngs as mb
-#from mutagen import File
+import musicbrainzngs as mb
+from mutagen import File
 import re
 import subprocess
 import sys
@@ -169,9 +169,15 @@ def manual():
     print("autotag <options> <directory>") #TODO: real help)
     sys.exit(2)
 
-def main(argv):
+def main(argv): #Maybe make this take a list of files?
     global args
-    try:
+    parser = ArgumentParser(
+        description = "Import files in the current directory.")
+    parser.add_argument("-r", "--rename", action="store_true")
+    parser.add_argument("-m", "--move", action="store_true")
+    parser.add_argument("-a", "--albumart", action="store_true")
+    
+    """try:
         opts, args = getopt.getopt(argv, "hnma", ["help", "rename", "move",
             "albumart"])
     except getopt.GetoptError:
@@ -184,7 +190,8 @@ def main(argv):
         elif opt in ("-m", "--move"):
             args["move"] = True
         elif opt in ("-a", "--albumart"):
-            args["addart"] = True
+            args["addart"] = True"""
+    
     process()
 
 
