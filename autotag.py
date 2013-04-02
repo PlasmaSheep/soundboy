@@ -23,7 +23,8 @@ logs = glob.glob("./*.log")
 
 albums = []; #List of albums for processing cue, log files'''
 
-args = {"rename": False, "move": False, "albumart": False}
+args = {"rename": False, "move": False, "albumart": False,
+    "descriptionfile":"info.txt"}
 
 def sanitize_name(name):
     return re.sub("[!@#$%^&*()~`]", "", name).lower().replace(" ", "_")
@@ -163,19 +164,19 @@ def process():
                 print("No metadata readable, cannot move.")
 
         print("----")
-
-def manual():
-    """Give the user help."""
-    print("autotag <options> <directory>") #TODO: real help)
-    sys.exit(2)
-
+        
 def main(argv): #Maybe make this take a list of files?
     global args
     parser = argparse.ArgumentParser(
         description = "Import files in the current directory.")
-    parser.add_argument("-r", "--rename", action="store_true")
-    parser.add_argument("-m", "--move", action="store_true")
-    parser.add_argument("-a", "--albumart", action="store_true")
+    parser.add_argument("-r", "--rename", action="store_true",
+        help="Rename the files.")
+    parser.add_argument("-m", "--move", action="store_true"
+        help="Move the files to the music directory.")
+    parser.add_argument("-a", "--albumart", action="store_true"
+        help="Set album art as metadata.")
+    parser.add_argument("-d", "--descriptionfile", action="store_true",
+        default="info.txt", help="Which file to use for the DESCRIPTION tag.")
     args = vars(parser.parse_args(argv))
     
     process()
