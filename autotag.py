@@ -44,6 +44,15 @@ def convert_process_flacs(mask="*.flac"):
     except subprocess.CalledProcessError:
         pass #no big deal
 
+def print_album_options(albums): #this is really poorly written
+    count = 0
+    choices = {}
+    for key, value in albums.items():
+        print(count, key)
+        choices[count] = key
+        count += 1
+        
+
 def process():
     global args
     """Process all tracks in the current directory.
@@ -57,17 +66,11 @@ def process():
     tracks.extend(glob.glob("./*.mp3"))
     tracks.extend(glob.glob("./*.ogg"))
     tracks.extend(glob.glob("./*.wav"))
+    albums = {}
 
     flacs_normalized = False;
     wavs_normalized = False;
     oggs_normalized = False;
-
-    if args["albumart"]:
-        pics = glob.glob("./*.png") #Image files
-        pics.extend(glob.glob("./*.jpg"))
-        pics.extend(glob.glob("./*.jpeg"))
-        pics.extend(glob.glob("./*.gif"))
-        
 
     if False:
         mb.set_useragent("Autotagger", ".1", "plasmasheep@gmail.com")
@@ -81,6 +84,13 @@ def process():
         audio = File(track, easy=True)
         filetype = mimetypes.guess_type(track)[0]
         suffix = mimetypes.guess_extension(filetype)
+        try:
+            if audio["album"][0] not in albums:
+                albums[audio["album"][0]] = []
+                print("Detected new album: " + audio["album"][0])
+            albums[audio["album"][0]].append(track)
+        except KeyError:
+            print("This file has no album.")
         
         if suffix == ".flac":
             print("FLAC file detected")
@@ -149,7 +159,17 @@ def process():
             except TypeError:
                 print("No metadata readable, cannot move.")
 
-        print("----")
+        print("")
+
+    if args["albumart"]:
+        pics = glob.glob("./*.png") #Image files
+        pics.extend(glob.glob("./*.jpg"))
+        pics.extend(glob.glob("./*.jpeg"))
+        pics.extend(glob.glob("./*.gif"))
+        print(len(pics), " images found.")
+        #for pic in pics:
+        print_album_options(albums)
+    
         
 def main(argv): #Maybe make this take a list of files?
     global args
