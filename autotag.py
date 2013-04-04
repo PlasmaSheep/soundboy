@@ -44,14 +44,9 @@ def convert_process_flacs(mask="*.flac"):
     except subprocess.CalledProcessError:
         pass #no big deal
 
-def print_album_options(albums): #this is really poorly written
-    count = 0
-    choices = {}
-    for key, value in albums.items():
-        print(count, key)
-        choices[count] = key
-        count += 1
-        
+def print_album_options(albums):
+    for pos, album in enumerate(albums):
+        print(str(pos) + ": " + album.keys()[0])
 
 def process():
     global args
@@ -166,10 +161,23 @@ def process():
         pics.extend(glob.glob("./*.jpg"))
         pics.extend(glob.glob("./*.jpeg"))
         pics.extend(glob.glob("./*.gif"))
-        print(len(pics), " images found.")
-        #for pic in pics:
-        print_album_options(albums)
-    
+        print(str(len(pics)) + " images found.")
+        if(len(pics) > 0):
+            #Convert albums into a more useful format:
+            #{"album1":["track1", "track2"], "album2":["track3"]} --->
+            #[{"album1":["track1", "track2"]}, {"album2":["track3"]}]
+            #We can access albums by numbers this way
+            albumlist = []
+            for album, tracks in albums.iteritems():
+                albumlist.append({album: tracks})
+            print("Albums found on tracks:")
+            print_album_options(albumlist)
+            for pic in pics:
+                print("Image: " + pic)
+                cover = raw_input("Which album goes with this image (enter for none):")
+                print("Goes with:", albumlist[cover].values()) #do this with cmd
+        else:
+            print("No images found, cannot add album art.") #TODO: online art
         
 def main(argv): #Maybe make this take a list of files?
     global args
@@ -186,9 +194,7 @@ def main(argv): #Maybe make this take a list of files?
     parser.add_argument("-d", "--descriptionfile", action="store_true",
         default="info.txt", help="Which file to use for the DESCRIPTION tag.")
     args = vars(parser.parse_args(argv))
-    
     process()
-
 
 if(__name__ == "__main__"):
     main(sys.argv[1:])
