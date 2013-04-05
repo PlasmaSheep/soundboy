@@ -22,13 +22,13 @@ import pprint
 ''''
 cues = glob.glob("./*.cue") #CUE and log files should also be moved
 logs = glob.glob("./*.log")
-
-albums = []; #List of albums for processing cue, log files'''
+'''
 
 args = {"rename":False, "move":False, "albumart":False,
     "descriptionfile":"info.txt", "normalize":False }
 
 def sanitize_name(name):
+    """Rename something to something more sensible."""
     return re.sub("[!@#$%^&*()~`]", "", name).lower().replace(" ", "_")
 
 def convert_process_flacs(mask="*.flac"):
@@ -44,9 +44,35 @@ def convert_process_flacs(mask="*.flac"):
     except subprocess.CalledProcessError:
         pass #no big deal
 
-def print_album_options(albums):
+def print_albums(albums):
+    """Print out the found albums along with numeric keys"""
     for pos, album in enumerate(albums):
         print(str(pos) + ": " + album.keys()[0])
+
+def ranged_input(min, max):
+    input = raw_input()
+    while input > max or input < min:
+        print("Input error: must be between " +
+            min + " and " + max + " inclusive")
+        input = int(raw_input())
+    return input
+
+def get_cover_and_type(image, albumlist): #this is very bad atm
+    codes = ["Other", "32x32 pixels 'file icon' (PNG only)", "Other file icon",
+        "Cover (front)", "Cover (back)", "Leaflet page",
+        "Media (e.g. label side of CD)", "Lead artist/lead performer/soloist",
+        "Artist/performer", "Conductor", "Band/Orchestra", "Composer",
+        "Lyricist/text writer", "Recording Location", "During recording",
+        "During performance", "Movie/video screen capture",
+        "A bright coloured fish", "Illustration", "Band/artist logotype",
+        "Publisher/Studio logotype"]
+    print("Enter number of album with this cover (-1 for none):")
+    cover = ranged_input(-1, len(albumlist) - 1)
+    if(cover > -1):
+        print("Enter description code: ")
+        code = ranged_input(0, len(codes) - 1)
+    return [cover, code]
+    
 
 def process():
     global args
@@ -100,7 +126,8 @@ def process():
             print("OGG file detected")
             if oggs_normalized is False:
                 print("Processing all OGG files...")
-                print(subprocess.check_output("vorbisgain *.ogg", shell = True))
+                print(subprocess.check_output("vorbisgain -a *.ogg",
+                    shell = True))
                 oggs_normalized = True
             else:
                 print("OGGs already processed")
@@ -171,11 +198,13 @@ def process():
             for album, tracks in albums.iteritems():
                 albumlist.append({album: tracks})
             print("Albums found on tracks:")
-            print_album_options(albumlist)
+            print_albums(albumlist)
             for pic in pics:
+                #For each pic, associate with an album, associate with a type,
+                #then tag all files with that album
                 print("Image: " + pic)
-                cover = raw_input("Which album goes with this image (enter for none):")
-                print("Goes with:", albumlist[cover].values()) #do this with cmd
+                get_cover_and_type(pic, albumlist)
+                
         else:
             print("No images found, cannot add album art.") #TODO: online art
         
