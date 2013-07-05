@@ -11,7 +11,7 @@ import acoustid
 import argparse
 import glob
 import mimetypes
-import musicbrainzngs as mb
+#import musicbrainzngs as mb
 from mutagen import File
 import re
 import subprocess
@@ -24,8 +24,8 @@ cues = glob.glob("./*.cue") #CUE and log files should also be moved
 logs = glob.glob("./*.log")
 '''
 
-args = {"rename":False, "move":False, "albumart":False,
-    "descriptionfile":"info.txt", "normalize":False }
+args = {"rename": False, "move": False, "albumart": False,
+    "descriptionfile": "info.txt", "normalize": False }
 
 def sanitize_name(name):
     """Rename something to something more sensible."""
@@ -44,20 +44,15 @@ def convert_process_flacs(mask="*.flac"):
     except subprocess.CalledProcessError:
         pass #no big deal
 
-def print_albums(albums):
-    """Print out the found albums along with numeric keys"""
-    for pos, album in enumerate(albums):
-        print(str(pos) + ": " + album.keys()[0])
-
 def ranged_input(min, max):
     input = raw_input()
     while input > max or input < min:
-        print("Input error: must be between " +
-            min + " and " + max + " inclusive")
+        print("Input error: must be between " + str(min) + " and " + str(max)
+            + " inclusive")
         input = int(raw_input())
     return input
 
-def get_cover_and_type(image, albumlist): #this is very bad atm
+def get_cover_and_code(albums, img): #this is not so bad atm
     codes = ["Other", "32x32 pixels 'file icon' (PNG only)", "Other file icon",
         "Cover (front)", "Cover (back)", "Leaflet page",
         "Media (e.g. label side of CD)", "Lead artist/lead performer/soloist",
@@ -66,23 +61,21 @@ def get_cover_and_type(image, albumlist): #this is very bad atm
         "During performance", "Movie/video screen capture",
         "A bright coloured fish", "Illustration", "Band/artist logotype",
         "Publisher/Studio logotype"]
-    print("Enter number of album with this cover (-1 for none):")
-    cover = ranged_input(-1, len(albumlist) - 1)
+    for index, item in enumerate(albums):
+        print(str(index) + ": " + item)
+    print("Enter number of album with cover {0} (-1 for none):".format(img))
+    album = ranged_input(-1, albums - 1)
     if(cover > -1):
+        for index, item in enumerate(codes):
+            print(str(index) + ": " + item)
         print("Enter description code: ")
         code = ranged_input(0, len(codes) - 1)
-    return [cover, code]
+    return [album, code]
     
-
 def process():
+    """Process all tracks in the current directory."""
     global args
-    """Process all tracks in the current directory.
-
-    Keyword arguments:
-    rename - If true, rename the tracks.
-    move - If true, move the tracks to the music directory.
-    addart - If true, try to guess and add album art to files.
-    """
+    
     tracks = glob.glob("./*.flac") #All compatible audio files
     tracks.extend(glob.glob("./*.mp3"))
     tracks.extend(glob.glob("./*.ogg"))
@@ -197,13 +190,12 @@ def process():
             albumlist = []
             for album, tracks in albums.iteritems():
                 albumlist.append({album: tracks})
-            print("Albums found on tracks:")
-            print_albums(albumlist)
             for pic in pics:
                 #For each pic, associate with an album, associate with a type,
                 #then tag all files with that album
                 print("Image: " + pic)
-                get_cover_and_type(pic, albumlist)
+                arts = get_cover_and_code(albumlist, pic)
+                add_album_art(arts)
                 
         else:
             print("No images found, cannot add album art.") #TODO: online art
@@ -220,7 +212,7 @@ def main(argv): #Maybe make this take a list of files?
         help="Set album art as metadata.")
     parser.add_argument("-n", "--normalize", action="store_true",
         help="Normalize tracks with ReplayGain.")
-    parser.add_argument("-d", "--descriptionfile", action="store_true",
+    parser.add_argument("-d", "--descriptionfile", action="store",
         default="info.txt", help="Which file to use for the DESCRIPTION tag.")
     args = vars(parser.parse_args(argv))
     process()
