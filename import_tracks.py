@@ -1,4 +1,4 @@
-"""Handle importation of music files."""
+"""Handle importation of files."""
 
 import glob
 import argparse
@@ -9,6 +9,18 @@ def get_files(args):
     files["tracks"].extend(glob.glob("./*.mp3"))
     files["tracks"].extend(glob.glob("./*.ogg"))
     files["tracks"].extend(glob.glob("./*.wav"))
+    
+    if args["cue"] == True:
+        files["cue"] = glob.glob("./*.cue")
+
+    if args["log"] == True:
+        files["log"] = glob.glob("./*.log")
+
+    return files
+
+def get_albums(tracks):
+    for track in tracks:
+        
 
 def main(args, config):
     parser = argparse.ArgumentParser(
@@ -23,7 +35,12 @@ def main(args, config):
         help="Normalize tracks with ReplayGain.")
     parser.add_argument("-d", "--descriptionfile", action="store",
         default="info.txt", help="Which file to use for the DESCRIPTION tag.")
+    parser.add_argument("-c", "--cue", action="store_true",
+        help="Process cue files (move them, rename tracks if necessary).")
+    parser.add_argument("-l", "--log", action="store_true",
+        help="Move log files along with tracks (only applies if -m is set).")
     args = vars(parser.parse_args(args))
 
     files = get_files(args)
+    albs = get_albums(files["tracks"])
     
