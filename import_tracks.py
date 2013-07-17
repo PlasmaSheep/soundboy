@@ -22,8 +22,10 @@ def get_files(args):
 def get_albums(tracks):
     albums = {}
     for track in tracks:
-        info = MusicFile(track);
-        albums[info.getAlbum()].append(track)
+        info = MusicFile(track)
+        if info.get_album() not in albums:
+            albums[info.get_album()] = []
+        albums[info.get_album()].append(track)
     return albums
         
 
