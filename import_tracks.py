@@ -2,6 +2,7 @@
 
 import glob
 import argparse
+from metadata import MusicFile
 
 def get_files(args):
     files = {}
@@ -19,7 +20,11 @@ def get_files(args):
     return files
 
 def get_albums(tracks):
+    albums = {}
     for track in tracks:
+        info = MusicFile(track);
+        albums[info.getAlbum()].append(track)
+    return albums
         
 
 def main(args, config):
