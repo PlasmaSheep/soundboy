@@ -1,4 +1,5 @@
-# Soundboy #
+Soundboy
+=======
 
 Soundboy is a manager for music. In the future, soundboy will be able to:
 
@@ -7,4 +8,4 @@ Soundboy is a manager for music. In the future, soundboy will be able to:
 + Normalize files using replaygain tags
 + Convert files en masse
 
-And perhaps more. Currently soundboy does not do much, but it can move your files to your music directory.
+And perhaps more. Currently soundboy does not do much.

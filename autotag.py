@@ -71,7 +71,12 @@ def get_cover_and_code(albums, img): #this is not so bad atm
         print("Enter description code: ")
         code = ranged_input(0, len(codes) - 1)
     return [album, code]
-    
+
+def add_art(imgcode, img, albums):
+    """Associate img with the tracks associated with that album as shown by
+    albums according to the rules in imgcode."""
+        
+
 def process():
     """Process all tracks in the current directory."""
     global args
@@ -195,7 +200,7 @@ def process():
                 #then tag all files with that album
                 print("Image: " + pic)
                 arts = get_cover_and_code(albumlist, pic)
-                add_album_art(arts)
+                add_album_art(arts, pic, albums)
                 
         else:
             print("No images found, cannot add album art.") #TODO: online art

@@ -4,6 +4,10 @@
 
 import sys
 import autotag
+import import_tracks
+import yaml
+
+config = "./config.yaml"
 
 def manual():
     print("Soundboy - a program to manage your music. Usage:")
@@ -13,9 +17,10 @@ def manual():
     sys.exit(2)
 
 def main(argv):
+    conf = yaml.safe_load(open(config))
     if(argv[0] == "import"):
         print("Importing files in the current directory.")
-        autotag.main(argv[1:])
+        import_tracks.main(argv[1:], conf)
         
     else:
         manual()
