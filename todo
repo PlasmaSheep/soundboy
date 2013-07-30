@@ -1,3 +1,14 @@
+1. Get all music files
+2. If necessary, get all image files
+3. If necessary, get all cue files/log files
+4. Move sound files into temp directory (if normalization enabled)
+5. For each directory:
+    1. Normalize/convert the file (if necessary)
+    2. Check musicbrainz (if necessary)
+    3. Apply album art (if necessary)
+    4. Update cue file
+    5. Move back or to new place
+
 + Legit installation
 + Easy console use (just 'soundboy xyz xyz')
 + Man page
@@ -7,4 +18,4 @@
 + mp3 player management
 + mp3 support
 + config file (yaml) w/ global config
-
++ custom rename mask
