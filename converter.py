@@ -2,7 +2,6 @@
 
 #Things this program should do
 # Convert to format by command line
-# Move files to appropriate directory.
 # Preserve metadata!
 
 import subprocess;
