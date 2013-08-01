@@ -9,7 +9,7 @@ class MusicFile:
     def __init__(self, track):
         self.track = track
         self.suffix = mimetypes.guess_extension(mimetypes.guess_type(track)[0])
-        self.suffix = track[-4:] #HACK
+        #TODO: figure out issue with .m4a
         
     def get_album(self):
         if self.suffix == ".mp3" and len(ID3(self.track).getall("TALB")) > 0:
