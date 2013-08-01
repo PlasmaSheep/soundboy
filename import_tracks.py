@@ -81,9 +81,10 @@ def main(args, config):
     parser.add_argument('dir', action="store", default="./",
         help="Which directory to process (default %(default)s)", nargs="?")
     args = vars(parser.parse_args(args))
-    files = get_files(args)
+
+    """files = get_files(args)
     print files
     for track in files["tracks"]:
         move_track(track, config["dir"])
-    #albs = get_albums(files["tracks"])
+    #albs = get_albums(files["tracks"])"""
     
