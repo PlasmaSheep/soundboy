@@ -1,3 +1,6 @@
 %YAML 1.2
 ---
 music-dir: /home/soundboy/music
+rename-mask: ":num:-:title:"
+lowercase: yes
+nostrange: yes

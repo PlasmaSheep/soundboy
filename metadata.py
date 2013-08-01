@@ -1,4 +1,5 @@
 """Handle metadata for files"""
+
 from mutagen.id3 import ID3
 from mutagen.flac import FLAC
 from mutagen.oggvorbis import OggVorbis

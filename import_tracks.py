@@ -7,61 +7,75 @@ import shutil
 import os
 import re
 import filecmp
+from unidecode import unidecode
+
+conf = {}
+args = {}
 
 def sanitize(name):
     """Rename something to something more sensible."""
+    name = unidecode(name) #Unicode filenames are such a bad idea
+    print conf["rename-mask"]
     return re.sub("[/^[:ascii:]#]", "", name).replace(" ", "_")
     #TODO: make it fix non-ascii characters
 
-def get_files(args):
+def get_files():
     files = {}
     root = args["dir"]
-    files["tracks"] = glob.glob(root + "/*.flac") #All compatible audio files
-    files["tracks"].extend(glob.glob(root + "/*.mp3"))
-    files["tracks"].extend(glob.glob(root + "/*.ogg"))
-    files["tracks"].extend(glob.glob(root + "/*.wav"))
-    files["tracks"].extend(glob.glob(root + "/*.m4a"))
+    files["tracks"] = glob.glob(root + u"/*.flac") #All compatible audio files
+    files["tracks"].extend(glob.glob(root + u"/*.mp3"))
+    files["tracks"].extend(glob.glob(root + u"/*.ogg"))
+    files["tracks"].extend(glob.glob(root + u"/*.wav"))
+    files["tracks"].extend(glob.glob(root + u"/*.m4a"))
     
     if args["cue"] == True:
-        files["cue"] = glob.glob(root + "/*.cue")
+        files["cue"] = glob.glob(root + u"/*.cue")
 
     if args["log"] == True:
-        files["log"] = glob.glob(root + "/*.log")
+        files["log"] = glob.glob(root + u"/*.log")
 
     return files
 
+def get_path(track):
+    """Get the artist/album format path for this particular track"""
+    info = MusicFile(track)
+    art = sanitize(info.get_artist())
+    alb = sanitize(info.get_album())
+    return art + "/" + alb
+
 def get_albums(tracks):
+    """Associate each album with a path leading to the directory with the
+    tracks in the album."""
     albums = {}
     for track in tracks:
         print track
         info = MusicFile(track)
         if info.get_album() not in albums:
             albums[info.get_album()] = []
-        albums[info.get_album()].append(track)
+            albums[info.get_album()] = get_path(track)
     return albums
 
-def move_track(track, root):
+def move_track(track):
     info = MusicFile(track)
-    art = sanitize(info.get_artist())
-    alb = sanitize(info.get_album())
+    path = get_path(track)
     name = sanitize(info.get_title()) + info.suffix
-    if not os.path.exists(root + art + "/" + alb):
-        os.makedirs(root + art + "/" + alb)
+    if not os.path.exists(root + path):
+        os.makedirs(root + path)
     print "Rename: " + track + " to " + name
     os.rename(track, name)
     try:
-        print "Moving " + name + " into " + root + art + "/" + alb
-        shutil.move(name, root + art + "/" + alb)
+        print "Moving " + name + " into " + root + path
+        shutil.move(name, root + path)
     except shutil.Error:
         print "Looks like that file already exists. Comparing..."
-        d = filecmp.cmp(name, root + art + "/" + alb + "/" + name)
+        d = filecmp.cmp(name, root + art + "/" + path)
         if d:
             print "Files are identical. Deleting this copy..."
             os.remove(name)
         else:
             print "Files are different. Leaving it alone."
 
-def main(args, config):
+def main(argv, config):
     parser = argparse.ArgumentParser(
         description = "Import files in the current directory.")
     parser.add_argument("-r", "--rename", action="store_true",
@@ -80,10 +94,22 @@ def main(args, config):
         help="Move log files along with tracks (only applies if -m is set).")
     parser.add_argument('dir', action="store", default="./",
         help="Which directory to process (default %(default)s)", nargs="?")
-    args = vars(parser.parse_args(args))
+    argv = vars(parser.parse_args(argv))
 
-    """files = get_files(args)
-    print files
+    global conf, args
+    conf = config
+    args = argv
+
+    files = get_files()
+    albums = get_albums(files["tracks"])
+
+    #for track in files["tracks"]:
+        #We temporarily organize tracks into a hierarchy at the present
+        #directory so that we can have proper album replay data.
+        #move_track(track)
+    
+    print albums
+    """print files
     for track in files["tracks"]:
         move_track(track, config["dir"])
     #albs = get_albums(files["tracks"])"""
