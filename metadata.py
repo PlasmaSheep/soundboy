@@ -39,11 +39,24 @@ class MusicFile:
     def get_title(self):
         if self.suffix == ".mp3" and len(ID3(self.track).getall("TIT2")) > 0:
             return ID3(self.track).getall("TIT2")[0][0]
-        elif self.suffix == ".flac" and len(FLAC(self.track)["artist"]) > 0:
-            return FLAC(self.track)["artist"][0]
-        elif self.suffix == ".ogg" and len(OggVorbis(self.track)["artist"]) > 0:
-            return OggVorbis(self.track)["artist"][0]
+        elif self.suffix == ".flac" and len(FLAC(self.track)["title"]) > 0:
+            return FLAC(self.track)["title"][0]
+        elif self.suffix == ".ogg" and len(OggVorbis(self.track)["title"]) > 0:
+            return OggVorbis(self.track)["title"][0]
         elif self.suffix == ".m4a" and len(MP4(self.track)["\xa9nam"]):
             return MP4(self.track)["\xa9nam"][0] #ewwww
+        else:
+            return "Unknown"
+    def get_number(self):
+        if self.suffix == ".mp3" and len(ID3(self.track).getall("TRCK")) > 0:
+            return ID3(self.track).getall("TRCK")[0][0]
+        elif self.suffix == ".flac" and
+            len(FLAC(self.track)["tracknumber"]) > 0:
+            return FLAC(self.track)["tracknumber"][0]
+        elif self.suffix == ".ogg" and
+            len(OggVorbis(self.track)["tracknumber"]) > 0:
+            return OggVorbis(self.track)["tracknumber"][0]
+        elif self.suffix == ".m4a" and len(MP4(self.track)["trkn"]):
+            return MP4(self.track)["trkn"][0][0] #ewwww
         else:
             return "Unknown"

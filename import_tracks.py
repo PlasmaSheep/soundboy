@@ -15,8 +15,17 @@ args = {}
 def sanitize(name):
     """Rename something to something more sensible."""
     name = unidecode(name) #Unicode filenames are such a bad idea
-    print conf["rename-mask"]
-    return re.sub("[/^[:ascii:]#]", "", name).replace(" ", "_")
+    if name[0] == ".":
+        name = name[1:]
+    #Strip nasty chars
+    name = re.sub("[/]", "", name)
+
+    if conf["lowercase"]:
+        name = name.lower();
+    if conf["nostrange"]:
+        name = name.replace(" ", "_")
+
+    return name
     #TODO: make it fix non-ascii characters
 
 def get_files():
@@ -35,6 +44,12 @@ def get_files():
         files["log"] = glob.glob(root + u"/*.log")
 
     return files
+
+def get_track_filename(track):
+    info = MusicFile(track)
+    #TODO: use the rename mask
+    return 
+    pass
 
 def get_path(track):
     """Get the artist/album format path for this particular track"""
@@ -59,16 +74,16 @@ def move_track(track):
     info = MusicFile(track)
     path = get_path(track)
     name = sanitize(info.get_title()) + info.suffix
-    if not os.path.exists(root + path):
-        os.makedirs(root + path)
+    #if not os.path.exists(root + path):
+    #    os.makedirs(root + path)
     print "Rename: " + track + " to " + name
-    os.rename(track, name)
+    #os.rename(track, name)
     try:
-        print "Moving " + name + " into " + root + path
-        shutil.move(name, root + path)
+        print "Moving " + name + " into " + path
+        #shutil.move(name, path)
     except shutil.Error:
         print "Looks like that file already exists. Comparing..."
-        d = filecmp.cmp(name, root + art + "/" + path)
+        d = filecmp.cmp(name, path)
         if d:
             print "Files are identical. Deleting this copy..."
             os.remove(name)
@@ -103,10 +118,11 @@ def main(argv, config):
     files = get_files()
     albums = get_albums(files["tracks"])
 
-    #for track in files["tracks"]:
+    for track in files["tracks"]:
         #We temporarily organize tracks into a hierarchy at the present
         #directory so that we can have proper album replay data.
-        #move_track(track)
+        move_track(track)
+        get_track_filename(track)
     
     print albums
     """print files
